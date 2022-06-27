@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t dyle/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run dyle/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t dyle/multi-client ./client
+  - docker build -t dyle/multi-nginx ./nginx
+  - docker build -t dyle/multi-server ./server
+  - docker build -t dyle/multi-worker ./worker
+# login docker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+# take images and push to docker hub
+  - docker push dyle/multi-client
+  - docker push dyle/multi-nginx
+  - docker push dyle/multi-server
+  - docker push dyle/multi-worker
